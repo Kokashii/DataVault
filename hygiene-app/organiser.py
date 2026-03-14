@@ -1,7 +1,7 @@
 """
 organiser.py
 
-Subfolder organiser for the file hygiene tool.
+Subfolder organiser for the DataVault tool.
 
 Given a FileStore, this module groups files by a chosen strategy and
 proposes moving them into new subfolders named after the group key.

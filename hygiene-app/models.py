@@ -1,7 +1,7 @@
 """
 models.py
 
-Core data model for the file hygiene tool.
+Core data model for the DataVault tool.
 Every scanned file becomes one FileRecord stored in the central FileStore.
 """
 

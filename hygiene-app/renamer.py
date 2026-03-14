@@ -1,7 +1,7 @@
 """
 renamer.py
 
-Rename execution engine for the file hygiene tool.
+Rename execution engine for the DataVault tool.
 
 Responsibilities
 ────────────────

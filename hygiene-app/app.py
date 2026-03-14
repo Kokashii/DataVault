@@ -1,5 +1,5 @@
 """
-app.py  —  File Hygiene · Hackathon UI
+app.py  —  DataVault · Hackathon UI
 
 Run:  streamlit run app.py
 
@@ -35,7 +35,7 @@ from suggestions   import (
 # ── Page config ───────────────────────────────────────────────────────────────
 
 st.set_page_config(
-    page_title="File Hygiene",
+    page_title="DataVault",
     page_icon="⬡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -526,7 +526,7 @@ with st.sidebar:
     st.markdown(
         "<div style='padding:6px 0 18px'>"
         "<span style='font-family:Syne,sans-serif;font-size:1.05rem;font-weight:800;"
-        "color:#e2e8f0;letter-spacing:-0.02em'>⬡ File Hygiene</span><br>"
+        "color:#e2e8f0;letter-spacing:-0.02em'>⬡ DataVault</span><br>"
         "<span style='font-size:0.65rem;color:#374151;letter-spacing:0.07em;"
         "text-transform:uppercase'>AI-powered hygiene tool</span></div>",
         unsafe_allow_html=True,
