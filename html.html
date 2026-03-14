@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataClean — NetApp</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: #F5F5F7;
+      min-height: 100vh;
+      color: #1d1d1f;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      max-width: 960px;
+      margin: 40px auto;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: #0071E3;
+      padding: 32px 40px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-circle1 {
+      position: absolute; top: -60px; right: -60px;
+      width: 260px; height: 260px; border-radius: 50%;
+      background: rgba(255,255,255,0.06); pointer-events: none;
+    }
+    .hero-circle2 {
+      position: absolute; bottom: -80px; right: 90px;
+      width: 190px; height: 190px; border-radius: 50%;
+      background: rgba(255,255,255,0.04); pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.55);
+      letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .hero-title {
+      font-size: 30px; font-weight: 600; color: white;
+      letter-spacing: -0.6px; line-height: 1.15;
+    }
+    .hero-sub {
+      font-size: 13px; color: rgba(255,255,255,0.68); margin-top: 6px;
+    }
+    .hero-path {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 18px; background: rgba(255,255,255,0.12);
+      border-radius: 10px; padding: 10px 14px;
+    }
+    .path-label { font-size: 11px; color: rgba(255,255,255,0.45); white-space: nowrap; }
+    .path-text {
+      font-size: 12px; color: rgba(255,255,255,0.88); flex: 1;
+      font-family: 'SF Mono', 'Menlo', monospace;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .path-btn {
+      background: white; color: #0071E3; font-size: 11px; font-weight: 500;
+      padding: 5px 14px; border-radius: 980px; border: none; cursor: pointer;
+      white-space: nowrap; transition: opacity 0.15s;
+    }
+    .path-btn:hover { opacity: 0.88; }
+    .hero-stats {
+      display: flex; gap: 28px; margin-top: 20px;
+      padding-top: 16px; border-top: 0.5px solid rgba(255,255,255,0.15);
+    }
+    .hs-val { font-size: 20px; font-weight: 600; color: white; letter-spacing: -0.4px; }
+    .hs-lbl { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .hero-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-white {
+      background: white; color: #0071E3; font-size: 13px; font-weight: 500;
+      padding: 9px 22px; border-radius: 980px; border: none; cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-white:hover { opacity: 0.88; }
+    .btn-ghost {
+      background: rgba(255,255,255,0.15); color: white; font-size: 13px;
+      padding: 9px 22px; border-radius: 980px;
+      border: 0.5px solid rgba(255,255,255,0.3); cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.22); }
+
+    /* ── TAB BAR ── */
+    .tabbar {
+      background: white; border-bottom: 0.5px solid rgba(0,0,0,0.1);
+      display: flex; overflow-x: auto; padding: 0 28px; gap: 0;
+    }
+    .tabbar::-webkit-scrollbar { display: none; }
+    .tab {
+      display: flex; align-items: center; gap: 7px;
+      padding: 14px 18px; font-size: 13px; font-weight: 400;
+      color: #6e6e73; cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap; transition: color 0.15s;
+      user-select: none;
+    }
+    .tab:hover { color: #1d1d1f; }
+    .tab.active { font-weight: 500; }
+    .tab-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── PANELS ── */
+    .panel { padding: 28px 40px; display: none; background: #F5F5F7; }
+    .panel.active { display: block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: white; border-radius: 14px;
+      border: 0.5px solid rgba(0,0,0,0.08); padding: 22px;
+      margin-bottom: 16px;
+    }
+    .card:last-child { margin-bottom: 0; }
+
+    /* ── GRIDS ── */
+    .two-col { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    .three-col { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+
+    /* ── FEATURE LABEL ── */
+    .feature-label { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+    .fdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .fname { font-size: 13px; font-weight: 600; color: #1d1d1f; }
+    .fbadge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 980px; margin-left: auto; }
+    .b-blue   { background: rgba(0,113,227,0.1);  color: #0058b8; }
+    .b-green  { background: rgba(52,199,89,0.12); color: #1a7a38; }
+    .b-amber  { background: rgba(255,159,10,0.12);color: #995f00; }
+    .b-purple { background: rgba(88,86,214,0.1);  color: #3d3bb0; }
+    .b-teal   { background: rgba(0,150,136,0.1);  color: #006055; }
+
+    /* ── FILE ITEMS ── */
+    .file-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 0.5px solid rgba(0,0,0,0.05);
+    }
+    .file-item:last-of-type { border-bottom: none; }
+    .fi-box {
+      width: 30px; height: 30px; border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .fi-csv  { background: rgba(52,199,89,0.1); }
+    .fi-pdf  { background: rgba(255,59,48,0.1); }
+    .fi-img  { background: rgba(0,113,227,0.1); }
+    .fi-doc  { background: rgba(88,86,214,0.1); }
+    .fi-txt  { background: rgba(255,159,10,0.1); }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name { font-size: 12px; color: #1d1d1f; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-size { font-size: 10px; color: #6e6e73; margin-top: 1px; }
+    .sp { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 980px; white-space: nowrap; }
+    .sp-done    { background: rgba(52,199,89,0.12);  color: #1a7a38; }
+    .sp-pending { background: rgba(255,159,10,0.12); color: #995f00; }
+    .sp-skip    { background: rgba(0,0,0,0.06);      color: #6e6e73; }
+
+    /* ── TYPE BARS ── */
+    .type-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 0; border-bottom: 0.5px solid rgba(0,0,0,0.05);
+    }
+    .type-row:last-child { border-bottom: none; }
+    .type-color { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .type-label { font-size: 12px; color: #1d1d1f; flex: 1; }
+    .type-count { font-size: 12px; color: #6e6e73; min-width: 32px; text-align: right; }
+    .bar-wrap { width: 80px; height: 4px; background: rgba(0,0,0,0.07); border-radius: 2px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 2px; }
+
+    /* ── PROGRESS ── */
+    .pbar-label { display: flex; justify-content: space-between; font-size: 11px; color: #6e6e73; margin-top: 14px; margin-bottom: 5px; }
+    .pbar { height: 4px; background: rgba(0,0,0,0.07); border-radius: 2px; overflow: hidden; }
+    .pbar-fill { height: 100%; border-radius: 2px; background: #0071E3; }
+
+    /* ── RENAME ── */
+    .rename-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; background: #F5F5F7; border-radius: 8px; margin-bottom: 6px;
+    }
+    .rename-item:last-child { margin-bottom: 0; }
+    .r-before { font-size: 11px; color: #6e6e73; flex: 1; font-family: 'SF Mono','Menlo',monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .r-arrow  { font-size: 11px; color: #0071E3; flex-shrink: 0; }
+    .r-after  { font-size: 11px; color: #1d1d1f; font-weight: 500; flex: 1; font-family: 'SF Mono','Menlo',monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── ORGANIZER ── */
+    .org-card {
+      background: white; border-radius: 14px;
+      border: 0.5px solid rgba(0,0,0,0.08); padding: 20px;
+    }
+
+    /* ── ARCHIVE ── */
+    .archive-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 0; border-bottom: 0.5px solid rgba(0,0,0,0.05);
+    }
+    .archive-item:last-of-type { border-bottom: none; }
+    .age-pill { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 980px; background: rgba(255,159,10,0.12); color: #995f00; white-space: nowrap; }
+
+    /* ── LOG ── */
+    .log-entry {
+      display: flex; gap: 10px;
+      padding: 9px 0; border-bottom: 0.5px solid rgba(0,0,0,0.05);
+    }
+    .log-entry:last-child { border-bottom: none; }
+    .log-time { font-size: 10px; color: #6e6e73; white-space: nowrap; padding-top: 2px; font-family: 'SF Mono','Menlo',monospace; min-width: 38px; }
+    .log-dot  { width: 6px; height: 6px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+    .log-msg  { font-size: 12px; color: #1d1d1f; line-height: 1.5; }
+    .log-sub  { font-size: 10px; color: #6e6e73; margin-top: 2px; font-family: 'SF Mono','Menlo',monospace; }
+
+    /* ── BUTTONS ── */
+    .action-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .btn-solid {
+      font-size: 12px; font-weight: 500; padding: 8px 20px;
+      border-radius: 980px; border: none; cursor: pointer; color: white;
+      transition: opacity 0.15s;
+    }
+    .btn-solid:hover { opacity: 0.85; }
+    .btn-outline {
+      font-size: 12px; padding: 8px 20px; border-radius: 980px;
+      background: transparent; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-outline:hover { background: rgba(0,0,0,0.04); }
+
+    /* ── RUN STRIP ── */
+    .run-strip {
+      background: white; border-radius: 14px;
+      border: 0.5px solid rgba(0,0,0,0.08); padding: 18px 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; margin-top: 16px; flex-wrap: wrap;
+    }
+    .run-title { font-size: 14px; font-weight: 600; color: #1d1d1f; }
+    .run-sub   { font-size: 12px; color: #6e6e73; margin-top: 2px; }
+    .run-actions { display: flex; gap: 8px; }
+
+    /* ── PATTERN BOX ── */
+    .pattern-box {
+      flex: 1; background: #F5F5F7; border-radius: 10px; padding: 12px 14px;
+    }
+    .pattern-box-label {
+      font-size: 10px; color: #6e6e73; text-transform: uppercase;
+      letter-spacing: 0.6px; margin-bottom: 4px;
+    }
+    .pattern-box-val {
+      font-size: 12px; color: #1d1d1f; font-weight: 500;
+      font-family: 'SF Mono','Menlo',monospace;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 620px) {
+      .app { margin: 0; border-radius: 0; border: none; }
+      .hero { padding: 24px 20px 20px; }
+      .panel { padding: 20px; }
+      .two-col, .three-col { grid-template-columns: 1fr; }
+      .hero-stats { gap: 16px; flex-wrap: wrap; }
+      .tabbar { padding: 0 12px; }
+      .tab { padding: 12px 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-circle1"></div>
+    <div class="hero-circle2"></div>
+    <div class="hero-eyebrow">NetApp · DataClean</div>
+    <div class="hero-title">Automated Data<br>Cleanup Suite</div>
+    <div class="hero-sub">Scan, rename, organize, archive, and log — all in one place.</div>
+
+    <div class="hero-path">
+      <span class="path-label">Folder</span>
+      <span class="path-text" id="heroPath">/Users/netapp/DataSets/Q4_Reports</span>
+      <button class="path-btn" onclick="changePath()">Change</button>
+    </div>
+
+    <div class="hero-stats">
+      <div><div class="hs-val">1,284</div><div class="hs-lbl">Files found</div></div>
+      <div><div class="hs-val">947</div><div class="hs-lbl">Processed</div></div>
+      <div><div class="hs-val">5</div><div class="hs-lbl">Active features</div></div>
+      <div><div class="hs-val">74%</div><div class="hs-lbl">Complete</div></div>
+    </div>
+
+    <div class="hero-actions">
+      <button class="btn-white" onclick="runAll()">Run all</button>
+      <button class="btn-ghost">Schedule scan</button>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tabbar">
+    <div class="tab active" data-tab="scanner" data-color="#0071E3" onclick="switchTab('scanner',this)">
+      <div class="tab-dot" style="background:#0071E3;"></div>Directory scanner
+    </div>
+    <div class="tab" data-tab="renamer" data-color="#5856D6" onclick="switchTab('renamer',this)">
+      <div class="tab-dot" style="background:#5856D6;"></div>File renamer
+    </div>
+    <div class="tab" data-tab="organizer" data-color="#34C759" onclick="switchTab('organizer',this)">
+      <div class="tab-dot" style="background:#34C759;"></div>File organizer
+    </div>
+    <div class="tab" data-tab="archiver" data-color="#FF9F0A" onclick="switchTab('archiver',this)">
+      <div class="tab-dot" style="background:#FF9F0A;"></div>Old file archiver
+    </div>
+    <div class="tab" data-tab="changelog" data-color="#00968A" onclick="switchTab('changelog',this)">
+      <div class="tab-dot" style="background:#00968A;"></div>Change log
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       TAB 1 — DIRECTORY SCANNER
+  ════════════════════════════════════ -->
+  <div class="panel active" id="panel-scanner">
+    <div class="two-col">
+
+      <div class="card">
+        <div class="feature-label">
+          <div class="fdot" style="background:#0071E3;"></div>
+          <span class="fname">Scanned files</span>
+          <span class="fbadge b-blue">Live</span>
+        </div>
+        <div class="file-item">
+          <div class="fi-box fi-csv">📄</div>
+          <div class="file-info"><div class="file-name">q4_report_final.csv</div><div class="file-size">2.1 MB · CSV</div></div>
+          <span class="sp sp-done">Scanned</span>
+        </div>
+        <div class="file-item">
+          <div class="fi-box fi-pdf">📕</div>
+          <div class="file-info"><div class="file-name">contract_v3_FINAL.pdf</div><div class="file-size">840 KB · PDF</div></div>
+          <span class="sp sp-done">Scanned</span>
+        </div>
+        <div class="file-item">
+          <div class="fi-box fi-img">🖼️</div>
+          <div class="file-info"><div class="file-name">banner_asset_compressed.png</div><div class="file-size">1.4 MB · PNG</div></div>
+          <span class="sp sp-done">Scanned</span>
+        </div>
+        <div class="file-item">
+          <div class="fi-box fi-doc">📘</div>
+          <div class="file-info"><div class="file-name">team_notes_draft2.docx</div><div class="file-size">320 KB · DOCX</div></div>
+          <span class="sp sp-pending">Pending</span>
+        </div>
+        <div class="file-item">
+          <div class="fi-box fi-txt">📝</div>
+          <div class="file-info"><div class="file-name">config_backup_old.txt</div><div class="file-size">12 KB · TXT</div></div>
+          <span class="sp sp-skip">Skipped</span>
+        </div>
+        <div class="pbar-label"><span>Scan progress</span><span>74%</span></div>
+        <div class="pbar"><div class="pbar-fill" style="width:74%;"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="feature-label">
+          <div class="fdot" style="background:#0071E3;"></div>
+          <span class="fname">File breakdown</span>
+        </div>
+        <div class="type-row">
+          <div class="type-color" style="background:#0071E3;"></div>
+          <span class="type-label">CSV / Excel</span><span class="type-count">412</span>
+          <div class="bar-wrap"><div class="bar-fill" style="width:80%;background:#0071E3;"></div></div>
+        </div>
+        <div class="type-row">
+          <div class="type-color" style="background:#FF3B30;"></div>
+          <span class="type-label">PDF</span><span class="type-count">238</span>
+          <div class="bar-wrap"><div class="bar-fill" style="width:46%;background:#FF3B30;"></div></div>
+        </div>
+        <div class="type-row">
+          <div class="type-color" style="background:#5856D6;"></div>
+          <span class="type-label">Documents</span><span class="type-count">187</span>
+          <div class="bar-wrap"><div class="bar-fill" style="width:36%;background:#5856D6;"></div></div>
+        </div>
+        <div class="type-row">
+          <div class="type-color" style="background:#34C759;"></div>
+          <span class="type-label">Images</span><span class="type-count">304</span>
+          <div class="bar-wrap"><div class="bar-fill" style="width:59%;background:#34C759;"></div></div>
+        </div>
+        <div class="type-row">
+          <div class="type-color" style="background:#FF9F0A;"></div>
+          <span class="type-label">Other</span><span class="type-count">143</span>
+          <div class="bar-wrap"><div class="bar-fill" style="width:28%;background:#FF9F0A;"></div></div>
+        </div>
+        <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid rgba(0,0,0,0.07);display:flex;justify-content:space-between;">
+          <span style="font-size:11px;color:#6e6e73;">Total size</span>
+          <span style="font-size:12px;font-weight:500;color:#1d1d1f;">3.8 GB</span>
+        </div>
+      </div>
+
+    </div>
+    <div class="run-strip">
+      <div>
+        <div class="run-title">Run directory scan</div>
+        <div class="run-sub">Rescans the target folder and refreshes all file data</div>
+      </div>
+      <button class="btn-solid" style="background:#0071E3;" onclick="notify('Scan started…')">Scan now</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       TAB 2 — FILE RENAMER
+  ════════════════════════════════════ -->
+  <div class="panel" id="panel-renamer">
+    <div class="card">
+      <div class="feature-label">
+        <div class="fdot" style="background:#5856D6;"></div>
+        <span class="fname">Rename pattern</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div class="pattern-box">
+          <div class="pattern-box-label">Pattern</div>
+          <div class="pattern-box-val">{date}_{name_lowercase}</div>
+        </div>
+        <div class="pattern-box">
+          <div class="pattern-box-label">Example output</div>
+          <div class="pattern-box-val">2024-11_q4_report.csv</div>
+        </div>
+        <div class="pattern-box">
+          <div class="pattern-box-label">Rules applied</div>
+          <div class="pattern-box-val" style="font-family:inherit;font-size:12px;">Lowercase · strip symbols · date prefix</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="feature-label">
+        <div class="fdot" style="background:#5856D6;"></div>
+        <span class="fname">Rename preview</span>
+        <span class="fbadge b-purple">6 queued</span>
+      </div>
+      <div class="two-col" style="gap:8px;">
+        <div>
+          <div class="rename-item"><span class="r-before">Q4 Report FINAL(2).csv</span><span class="r-arrow">→</span><span class="r-after">2024-11_q4_report.csv</span></div>
+          <div class="rename-item"><span class="r-before">Contract_v3_FINAL!!.pdf</span><span class="r-arrow">→</span><span class="r-after">2024-10_contract_v3.pdf</span></div>
+          <div class="rename-item"><span class="r-before">BANNER asset compressed.png</span><span class="r-arrow">→</span><span class="r-after">2024-09_banner_asset.png</span></div>
+        </div>
+        <div>
+          <div class="rename-item"><span class="r-before">Team Notes Draft2.docx</span><span class="r-arrow">→</span><span class="r-after">2024-11_team_notes.docx</span></div>
+          <div class="rename-item"><span class="r-before">config backup OLD.txt</span><span class="r-arrow">→</span><span class="r-after">2024-08_config_backup.txt</span></div>
+          <div class="rename-item"><span class="r-before">User Export Nov (copy).xlsx</span><span class="r-arrow">→</span><span class="r-after">2024-11_user_export.xlsx</span></div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn-solid" style="background:#5856D6;" onclick="notify('6 files renamed successfully.')">Apply renames</button>
+        <button class="btn-outline" style="color:#5856D6;border:0.5px solid rgba(88,86,214,0.35);">Edit pattern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       TAB 3 — FILE ORGANIZER
+  ════════════════════════════════════ -->
+  <div class="panel" id="panel-organizer">
+    <div class="three-col">
+      <div class="org-card">
+        <div class="feature-label">
+          <div class="fdot" style="background:#34C759;"></div>
+          <span class="fname">Data files</span>
+          <span class="fbadge b-green">412</span>
+        </div>
+        <div style="font-size:11px;color:#6e6e73;margin-bottom:10px;font-family:'SF Mono','Menlo',monospace;">→ /organized/data/</div>
+        <div style="font-size:12px;color:#1d1d1f;line-height:2;">.csv &nbsp;.xlsx &nbsp;.xls<br>.json &nbsp;.parquet &nbsp;.tsv</div>
+      </div>
+      <div class="org-card">
+        <div class="feature-label">
+          <div class="fdot" style="background:#5856D6;"></div>
+          <span class="fname">Documents</span>
+          <span class="fbadge b-purple">425</span>
+        </div>
+        <div style="font-size:11px;color:#6e6e73;margin-bottom:10px;font-family:'SF Mono','Menlo',monospace;">→ /organized/docs/</div>
+        <div style="font-size:12px;color:#1d1d1f;line-height:2;">.pdf &nbsp;.docx &nbsp;.doc<br>.pptx &nbsp;.txt &nbsp;.md</div>
+      </div>
+      <div class="org-card">
+        <div class="feature-label">
+          <div class="fdot" style="background:#0071E3;"></div>
+          <span class="fname">Media</span>
+          <span class="fbadge b-blue">304</span>
+        </div>
+        <div style="font-size:11px;color:#6e6e73;margin-bottom:10px;font-family:'SF Mono','Menlo',monospace;">→ /organized/media/</div>
+        <div style="font-size:12px;color:#1d1d1f;line-height:2;">.png &nbsp;.jpg &nbsp;.svg<br>.mp4 &nbsp;.gif &nbsp;.webp</div>
+      </div>
+    </div>
+    <div class="run-strip">
+      <div>
+        <div class="run-title">Organize files now</div>
+        <div class="run-sub">Moves 1,141 files into their matching type folders</div>
+      </div>
+      <button class="btn-solid" style="background:#34C759;" onclick="notify('1,141 files organized into 3 folders.')">Organize</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       TAB 4 — OLD FILE ARCHIVER
+  ════════════════════════════════════ -->
+  <div class="panel" id="panel-archiver">
+    <div class="card">
+      <div class="feature-label">
+        <div class="fdot" style="background:#FF9F0A;"></div>
+        <span class="fname">Archive settings</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div class="pattern-box">
+          <div class="pattern-box-label">Age threshold</div>
+          <div class="pattern-box-val" style="font-family:inherit;">180 days</div>
+        </div>
+        <div class="pattern-box">
+          <div class="pattern-box-label">Destination</div>
+          <div class="pattern-box-val">/archive/2026/</div>
+        </div>
+        <div class="pattern-box" style="background:rgba(255,159,10,0.08);">
+          <div class="pattern-box-label">Eligible</div>
+          <div class="pattern-box-val" style="font-family:inherit;color:#995f00;">89 files · 1.2 GB</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="feature-label">
+        <div class="fdot" style="background:#FF9F0A;"></div>
+        <span class="fname">Archive candidates</span>
+        <span class="fbadge b-amber">89 files</span>
+      </div>
+      <div class="archive-item">
+        <div class="fi-box fi-csv">📄</div>
+        <div class="file-info"><div class="file-name">leads_2022_q1_raw.csv</div><div class="file-size">88 MB · Last modified Jan 2022</div></div>
+        <span class="age-pill">2.1 yrs old</span>
+      </div>
+      <div class="archive-item">
+        <div class="fi-box fi-pdf">📕</div>
+        <div class="file-info"><div class="file-name">annual_report_2021.pdf</div><div class="file-size">12 MB · Last modified Dec 2021</div></div>
+        <span class="age-pill">3 yrs old</span>
+      </div>
+      <div class="archive-item">
+        <div class="fi-box fi-doc">📘</div>
+        <div class="file-info"><div class="file-name">project_brief_v1.docx</div><div class="file-size">440 KB · Last modified Mar 2023</div></div>
+        <span class="age-pill">1.8 yrs old</span>
+      </div>
+      <div class="archive-item">
+        <div class="fi-box fi-img">🖼️</div>
+        <div class="file-info"><div class="file-name">hero_banner_2022.png</div><div class="file-size">3.2 MB · Last modified Jun 2022</div></div>
+        <span class="age-pill">2.6 yrs old</span>
+      </div>
+      <div class="action-row">
+        <button class="btn-solid" style="background:#FF9F0A;" onclick="notify('89 files moved to /archive/2026/')">Archive all</button>
+        <button class="btn-outline" style="color:#FF9F0A;border:0.5px solid rgba(255,159,10,0.4);">Set threshold</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       TAB 5 — CHANGE LOG
+  ════════════════════════════════════ -->
+  <div class="panel" id="panel-changelog">
+    <div class="card">
+      <div class="feature-label">
+        <div class="fdot" style="background:#00968A;"></div>
+        <span class="fname">Activity log</span>
+        <span class="fbadge b-teal">24 entries today</span>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">09:42</span>
+        <div class="log-dot" style="background:#34C759;"></div>
+        <div><div class="log-msg">947 files scanned and processed successfully</div><div class="log-sub">/DataSets/Q4_Reports · 3.8 GB</div></div>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">09:41</span>
+        <div class="log-dot" style="background:#5856D6;"></div>
+        <div><div class="log-msg">6 files renamed using date-prefix pattern</div><div class="log-sub">q4_report_final.csv → 2024-11_q4_report.csv · +5 more</div></div>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">09:40</span>
+        <div class="log-dot" style="background:#0071E3;"></div>
+        <div><div class="log-msg">1,141 files sorted into 3 type folders</div><div class="log-sub">/organized/data/ · /organized/docs/ · /organized/media/</div></div>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">09:39</span>
+        <div class="log-dot" style="background:#FF9F0A;"></div>
+        <div><div class="log-msg">89 files flagged for archiving (older than 180 days)</div><div class="log-sub">1.2 GB eligible · awaiting confirmation</div></div>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">09:38</span>
+        <div class="log-dot" style="background:#FF3B30;"></div>
+        <div><div class="log-msg">3 files skipped — unsupported format</div><div class="log-sub">.tmp · .lock · .ds_store</div></div>
+      </div>
+      <div class="log-entry">
+        <span class="log-time">09:37</span>
+        <div class="log-dot" style="background:#6e6e73;"></div>
+        <div><div class="log-msg">Directory scan initiated</div><div class="log-sub">/Users/netapp/DataSets/Q4_Reports</div></div>
+      </div>
+      <div class="action-row">
+        <button class="btn-solid" style="background:#00968A;" onclick="exportLog()">Export log (.csv)</button>
+        <button class="btn-outline" style="color:#00968A;border:0.5px solid rgba(0,150,136,0.35);">View full history</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast" style="
+  position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:#1d1d1f; color:white; font-size:13px; font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
+  padding:10px 22px; border-radius:980px; opacity:0; transition:all 0.3s ease;
+  pointer-events:none; white-space:nowrap; z-index:999;
+"></div>
+
+<script>
+  function switchTab(key, el) {
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.classList.remove('active');
+      t.style.color = '';
+      t.style.borderBottomColor = '';
+      t.style.borderBottomWidth = '';
+      t.style.borderBottomStyle = '';
+    });
+    document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+    el.classList.add('active');
+    var color = el.getAttribute('data-color') || '#0071E3';
+    el.style.color = color;
+    el.style.borderBottomColor = color;
+    el.style.borderBottomWidth = '2px';
+    el.style.borderBottomStyle = 'solid';
+    document.getElementById('panel-' + key).classList.add('active');
+  }
+
+  // Set initial active tab color on load
+  (function() {
+    var first = document.querySelector('.tab.active');
+    if (first) {
+      var color = first.getAttribute('data-color') || '#0071E3';
+      first.style.color = color;
+      first.style.borderBottomColor = color;
+      first.style.borderBottomWidth = '2px';
+      first.style.borderBottomStyle = 'solid';
+    }
+  })();
+
+  function notify(msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+    setTimeout(function() {
+      t.style.opacity = '0';
+      t.style.transform = 'translateX(-50%) translateY(20px)';
+    }, 2800);
+  }
+
+  function changePath() {
+    var p = prompt('Enter folder path:', document.getElementById('heroPath').textContent);
+    if (p && p.trim()) {
+      document.getElementById('heroPath').textContent = p.trim();
+      notify('Folder path updated.');
+    }
+  }
+
+  function runAll() {
+    notify('Running all features…');
+  }
+
+  function exportLog() {
+    var csv = [
+      'Time,Event,Detail',
+      '09:42,Scan complete,947 files - 3.8 GB',
+      '09:41,Files renamed,6 files renamed',
+      '09:40,Files organized,1141 files into 3 folders',
+      '09:39,Archive flagged,89 files - 1.2 GB',
+      '09:38,Files skipped,3 unsupported files',
+      '09:37,Scan initiated,/Users/netapp/DataSets/Q4_Reports'
+    ].join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dataclean_log.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    notify('Log exported as dataclean_log.csv');
+  }
+</script>
+
+</body>
+</html>
